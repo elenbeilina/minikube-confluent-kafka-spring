@@ -25,12 +25,6 @@ public class MinikubeConfluentKafkaSpringApplication {
     NewTopic mainTopic() {
         return new NewTopic("main", 1, (short) 1);
     }
-
-    @Bean
-    NewTopic testTopic() {
-        return new NewTopic("test", 1, (short) 1);
-    }
-
 }
 
 @Component
@@ -55,7 +49,7 @@ class Producer {
 
 @Component
 class Consumer {
-    @KafkaListener(id = "test", topics = {"test"})
+    @KafkaListener(id = "main", topics = {"main"})
     public void consumer(ConsumerRecord<String, String> simpleRecord) {
         System.out.println("Successfully received record with offset = " + simpleRecord.offset() +
                 " and partition = " + simpleRecord.partition() + " from Kafka: "
