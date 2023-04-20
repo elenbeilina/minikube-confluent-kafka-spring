@@ -1,5 +1,6 @@
 package com.aqualen.minikubeconfluentkafkaspring;
 
+import com.aqualen.Shark;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -31,11 +32,15 @@ public class MinikubeConfluentKafkaSpringApplication {
 @RequiredArgsConstructor
 class Producer {
 
-    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final KafkaTemplate<String, Shark> kafkaTemplate;
 
     @EventListener(ApplicationStartedEvent.class)
     public void produce() {
-        kafkaTemplate.send("main", "Code for life").whenComplete((result, ex) -> {
+        kafkaTemplate.send("main", Shark.newBuilder()
+                .setName("mako")
+                .setAverageSize(3)
+                .setMaxSpeed(74)
+                .setOrder("mackerel shark").build()).whenComplete((result, ex) -> {
             if (ex == null) {
                 System.out.println("Successfully sent record with offset = " + result.getRecordMetadata().offset() +
                         " and partition = " + result.getRecordMetadata().partition() + " to Kafka");
@@ -50,7 +55,7 @@ class Producer {
 @Component
 class Consumer {
     @KafkaListener(id = "main", topics = {"main"})
-    public void consumer(ConsumerRecord<String, String> simpleRecord) {
+    public void consumer(ConsumerRecord<String, Shark> simpleRecord) {
         System.out.println("Successfully received record with offset = " + simpleRecord.offset() +
                 " and partition = " + simpleRecord.partition() + " from Kafka: "
                 + simpleRecord.key() + ", " + simpleRecord.value());

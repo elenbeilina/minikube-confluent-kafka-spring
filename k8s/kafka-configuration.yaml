@@ -97,6 +97,8 @@ spec:
               value: "0"
             - name: KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR
               value: "1"
+            - name: KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL
+              value: http://schema-registry-service:8081
             - name: KAFKA_TRANSACTION_STATE_LOG_MIN_ISR
               value: "1"
             - name: KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR
@@ -122,6 +124,54 @@ spec:
           name: kafka-broker
           ports:
             - containerPort: 9092
+---
+# ... Schema Registry
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: schema-registry-service
+  name: schema-registry-service
+spec:
+  ports:
+    - name: schema-registry-port
+      port: 8081
+      protocol: TCP
+      targetPort: 8081
+  selector:
+    app: schema-registry
+  clusterIP: None
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: schema-registry
+  name: schema-registry
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: schema-registry
+  template:
+    metadata:
+      labels:
+        app: schema-registry
+    spec:
+      containers:
+        - env:
+            - name: SCHEMA_REGISTRY_HOST_NAME
+              value: schema-registry-service
+            - name: SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS
+              value: kafka-service:9092
+            - name: SCHEMA_REGISTRY_LISTENERS
+              value: http://0.0.0.0:8081
+          image: confluentinc/cp-schema-registry:7.3.3
+          imagePullPolicy: IfNotPresent
+          name: schema-registry
+          ports:
+            - containerPort: 8081
 ---
 # ... Control center
 #ClusterIP type makes Pods accessible only to other Pods,
@@ -163,6 +213,8 @@ spec:
               value: kafka-service:9092
             - name: CONTROL_CENTER_ZOOKEEPER_CONNECT
               value: zookeeper-service:2181
+            - name: CONTROL_CENTER_SCHEMA_REGISTRY_URL
+              value: http://schema-registry-service:8081
             - name: CONTROL_CENTER_REPLICATION_FACTOR
               value: "1"
             - name: CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS

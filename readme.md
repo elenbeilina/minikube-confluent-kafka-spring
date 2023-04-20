@@ -8,11 +8,11 @@
     ```
 2. Run local k8s cluster:
    ```
-    minikube start
+   minikube start
    ```
 3. To point your shell to minikube’s docker-daemon, run:
    ```
-    eval $(minikube -p minikube docker-env)
+   eval $(minikube -p minikube docker-env)
    ```
 4. Build docker image with tag: minikube-confluent-kafka-spring:
    ```
